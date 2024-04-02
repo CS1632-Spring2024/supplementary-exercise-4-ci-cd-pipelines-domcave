@@ -1,17 +1,19 @@
 package edu.pitt.cs;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
 import static org.junit.Assert.*;
-
-import org.mockito.Mockito;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+import org.mockito.*;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RentACatUnitTest {
@@ -35,31 +37,15 @@ public class RentACatUnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		// INITIALIZE THE TEST FIXTURE
-		
-		// 1. Create a new RentACat object and assign to r using a call to RentACat.createInstance(InstanceType).
-		// Passing InstanceType.IMPL as the first parameter will create a real RentACat object using your RentACatImpl implementation.
-		// Passing InstanceType.MOCK as the first parameter will create a mock RentACat object using Mockito.
-		// Which type is the correct choice for this unit test?  I'll leave it up to you.  The answer is in the Unit Testing Part 2 lecture. :)
-		// TODO: Fill in
-
-		// 2. Create a Cat with ID 1 and name "Jennyanydots", assign to c1 using a call to Cat.createInstance(InstanceType, int, String).
-		// Passing InstanceType.IMPL as the first parameter will create a real cat using your CatImpl implementation.
-		// Passing InstanceType.MOCK as the first parameter will create a mock cat using Mockito.
-		// Which type is the correct choice for this unit test?  Again, I'll leave it up to you.
-		// TODO: Fill in
-
-		// 3. Create a Cat with ID 2 and name "Old Deuteronomy", assign to c2 using a call to Cat.createInstance(InstanceType, int, String).
-		// TODO: Fill in
-
-		// 4. Create a Cat with ID 3 and name "Mistoffelees", assign to c3 using a call to Cat.createInstance(InstanceType, int, String).
-		// TODO: Fill in
+		r = RentACat.createInstance(InstanceType.IMPL);
+		c1 = Cat.createInstance(InstanceType.MOCK, 1, "Jennyanydots");
+		c2 = Cat.createInstance(InstanceType.MOCK, 2, "Old Deuteronomy");
+		c3 = Cat.createInstance(InstanceType.MOCK, 3, "Mistoffelees");
 
 		// 5. Redirect system output from stdout to the "out" stream
-		// First, make a back up of System.out (which is the stdout to the console)
 		stdout = System.out;
-		// Second, update System.out to the PrintStream created from "out"
-		// TODO: Fill in.  Refer to the textbook chapter 14.6 on Testing System Output.
+		out = new ByteArrayOutputStream();
+		System.setOut(new PrintStream(out)); // Refer to the textbook chapter 14.6 on Testing System Output.
 	}
 
 	@After
@@ -86,13 +72,23 @@ public class RentACatUnitTest {
 	 * </pre>
 	 * 
 	 * Hint: You will need to use Java reflection to invoke the private getCat(int)
-	 * method. efer to the Unit Testing Part 1 lecture and the textbook appendix 
-	 * hapter on using reflection on how to do this.  Please use r.getClass() to get
+	 * method. efer to the Unit Testing Part 1 lecture and the textbook appendix
+	 * hapter on using reflection on how to do this. Please use r.getClass() to get
 	 * the class object of r instead of hardcoding it as RentACatImpl.
+	 * 
+	 * @throws SecurityException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
 	 */
 	@Test
-	public void testGetCatNullNumCats0() {
-		// TODO: Fill in
+	public void testGetCatNullNumCats0() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+		Method getCat = r.getClass().getDeclaredMethod("getCat", int.class);
+		getCat.setAccessible(true);
+		Object retVal = getCat.invoke(r, 2);
+		assertNull("Returned a non-null object", retVal);
+		assertEquals("System did not tell user that cat ID was invalid.", "Invalid cat ID.\n", out.toString());
 	}
 
 	/**
@@ -106,13 +102,24 @@ public class RentACatUnitTest {
 	 * </pre>
 	 * 
 	 * Hint: You will need to use Java reflection to invoke the private getCat(int)
-	 * method. efer to the Unit Testing Part 1 lecture and the textbook appendix 
-	 * hapter on using reflection on how to do this.  Please use r.getClass() to get
+	 * method. efer to the Unit Testing Part 1 lecture and the textbook appendix
+	 * hapter on using reflection on how to do this. Please use r.getClass() to get
 	 * the class object of r instead of hardcoding it as RentACatImpl.
 	 */
 	@Test
 	public void testGetCatNumCats3() {
-		// TODO: Fill in
+		r.addCat(c1);
+		r.addCat(c2);
+		r.addCat(c3);
+
+		try {
+			Method m = r.getClass().getDeclaredMethod("getCat", int.class);
+			m.setAccessible(true);
+			Object ret = m.invoke(r, 2);
+			assertNotNull("Assertion failed. Cat with ID 2 not found.", ret);
+		} catch (Exception e) {
+			System.out.println("Java Reflection Failed");
+		}
 	}
 
 	/**
@@ -126,7 +133,8 @@ public class RentACatUnitTest {
 	 */
 	@Test
 	public void testListCatsNumCats0() {
-		// TODO: Fill in
+		String ret = r.listCats();
+		assertEquals("Assertion failed. Cats listed.", "", ret);
 	}
 
 	/**
@@ -141,7 +149,15 @@ public class RentACatUnitTest {
 	 */
 	@Test
 	public void testListCatsNumCats3() {
-		// TODO: Fill in
+		r.addCat(c1);
+		r.addCat(c2);
+		r.addCat(c3);
+		String ret = r.listCats();
+		assertEquals("Assertion failed. Cats not listed.",
+				"ID 1. Jennyanydots\n" +
+						"ID 2. Old Deuteronomy\n" +
+						"ID 3. Mistoffelees\n",
+				ret);
 	}
 
 	/**
@@ -161,7 +177,8 @@ public class RentACatUnitTest {
 	 */
 	@Test
 	public void testRenameFailureNumCats0() {
-		// TODO: Fill in
+		boolean ret = r.renameCat(2, "Garfield");
+		assertFalse("Assertion failed. Existing cat renamed.", ret);
 	}
 
 	/**
@@ -180,7 +197,12 @@ public class RentACatUnitTest {
 	 */
 	@Test
 	public void testRenameNumCat3() {
-		// TODO: Fill in
+		r.addCat(c1);
+		r.addCat(c2);
+		r.addCat(c3);
+		boolean ret = r.renameCat(2, "Garfield");
+		Mockito.verify(c2).renameCat("Garfield"); // Verifies that renameCat has been called on c2
+		assertTrue("Assertion failed. Cat not renamed.", ret);
 	}
 
 	/**
@@ -200,7 +222,20 @@ public class RentACatUnitTest {
 	 */
 	@Test
 	public void testRentCatNumCats3() {
-		// TODO: Fill in
+
+		// * Preconditions */
+		r.addCat(c1);
+		r.addCat(c2);
+		r.addCat(c3);
+
+		// * Execution Steps */
+		boolean retVal = r.rentCat(2);
+
+		// * Postconditions */
+		assertTrue("Cat was not successfully rented.", retVal);
+		Mockito.verify(c2).rentCat();
+		assertEquals("User was not told that cat has been rented.", "Old Deuteronomy has been rented.\n", out.toString());
+
 	}
 
 	/**
@@ -221,7 +256,20 @@ public class RentACatUnitTest {
 	 */
 	@Test
 	public void testRentCatFailureNumCats3() {
-		// TODO: Fill in
+
+		// * Preconditions */
+		r.addCat(c1);
+		r.addCat(c2);
+		r.addCat(c3);
+		Mockito.when(c2.getRented()).thenReturn(true);
+
+		// * Execution Steps */
+		boolean retVal = r.rentCat(2);
+
+		// * Postconditions */
+		assertFalse("Cat was successfully rented.", retVal);
+		Mockito.verify(c2, never()).rentCat();
+		assertEquals("User was not told that cat was not here.", "Sorry, Old Deuteronomy is not here!\n", out.toString());
 	}
 
 	/**
@@ -242,7 +290,14 @@ public class RentACatUnitTest {
 	 */
 	@Test
 	public void testReturnCatNumCats3() {
-		// TODO: Fill in
+		r.addCat(c1);
+		r.addCat(c2);
+		r.addCat(c3);
+		Mockito.when(c2.getRented()).thenReturn(true);
+		boolean ret = r.returnCat(2);
+		assertTrue("Assertion failed. Cat not returned.", ret);
+		Mockito.verify(c2).returnCat();
+		assertEquals("Assertion failed. Output incorrect", "Welcome back, Old Deuteronomy!\n", out.toString());
 	}
 
 	/**
@@ -262,7 +317,12 @@ public class RentACatUnitTest {
 	 */
 	@Test
 	public void testReturnFailureCatNumCats3() {
-		// TODO: Fill in
+		r.addCat(c1);
+		r.addCat(c2);
+		r.addCat(c3);
+		boolean ret = r.returnCat(2);
+		assertFalse("Assertion failed. Unrented cat returned.", ret);
+		assertEquals("Assertion failed. Output incorrect", "Old Deuteronomy is already here!\n", out.toString());
 	}
 
 }

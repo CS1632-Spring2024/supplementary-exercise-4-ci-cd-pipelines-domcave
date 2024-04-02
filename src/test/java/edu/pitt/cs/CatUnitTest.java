@@ -1,14 +1,13 @@
 package edu.pitt.cs;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
 import static org.junit.Assert.*;
 
-import org.mockito.Mockito;
-import static org.mockito.Mockito.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+import org.mockito.*;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CatUnitTest {
@@ -31,7 +30,7 @@ public class CatUnitTest {
 		// Passing InstanceType.IMPL as the first parameter will create a real cat using your CatImpl implementation.
 		// Passing InstanceType.MOCK as the first parameter will create a mock cat using Mockito.
 		// Which type is the correct choice for this unit test?  I'll leave it up to you.  The answer is in the Unit Testing Part 2 lecture. :)
-		// TODO: Fill in
+		c = Cat.createInstance(InstanceType.IMPL, 1, "Jennyanydots");
 	}
 
 	@After
@@ -52,7 +51,8 @@ public class CatUnitTest {
 	 */
 	@Test
 	public void testGetId() {
-		// TODO: Fill in
+		int retVal = c.getId();
+		assertEquals("Returned ID was not 1 even though it is the ID of the cat",1, retVal);
 	}
 
 	/**
@@ -66,7 +66,8 @@ public class CatUnitTest {
 	 */
 	@Test
 	public void testGetName() {
-		// TODO: Fill in
+		String retVal = c.getName();
+		assertEquals("Name returned was not Jennyanydots", "Jennyanydots", retVal);
 	}
 
 	/**
@@ -80,7 +81,8 @@ public class CatUnitTest {
 	 */
 	@Test
 	public void testGetRented() {
-		// TODO: Fill in
+		boolean retVal = c.getRented();
+		assertFalse("Cat is not rented yet method is saying it is", retVal);
 	}
 
 	/**
@@ -94,7 +96,8 @@ public class CatUnitTest {
 	 */
 	@Test
 	public void testToString() {
-		// TODO: Fill in
+		String retVal = c.toString();
+		assertEquals("toString output not correct", "ID 1. Jennyanydots", retVal);
 	}
 
 	/**
@@ -109,7 +112,9 @@ public class CatUnitTest {
 	 */
 	@Test
 	public void testRentCat() {
-		// TODO: Fill in
+		c.rentCat();
+		boolean retVal = c.getRented();
+		assertTrue("rentCat method did not mark cat as rented", retVal);
 	}
 
 	/**
@@ -125,7 +130,10 @@ public class CatUnitTest {
 	 */
 	@Test
 	public void testReturnCat() {
-		// TODO: Fill in
+		c.rentCat();
+		c.returnCat();
+		boolean retVal = c.getRented();
+		assertFalse("returnCat method did not mark cat as unrented", retVal);
 	}
 
 	/**
@@ -140,7 +148,9 @@ public class CatUnitTest {
 	 */
 	@Test
 	public void testRenameCat() {
-		// TODO: Fill in
+		c.renameCat("Garfield");
+		assertEquals("Cat was not correctly renamed", "Garfield", c.getName());
+		assertEquals("toString output was incorrect", "ID 1. Garfield", c.toString());
 	}
 
 }
